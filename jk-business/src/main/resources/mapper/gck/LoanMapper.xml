@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.LoanMapper">
+
+    <sql id="Base_Column_List">
+        id,number,debtor_id,leader_id,leader_bank_id, debtor_bank_id,amount,trade_time,rate,return_time,state,status,remark,inserter,updater,insert_time,update_time,create_by,apply_user,apply_time,instance_id
+    </sql>
+
+    <!-- 带参数查询资金划拨列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.Loan">
+        select
+        <include refid="Base_Column_List"/>
+        from t_loan where 1=1
+        <if test="debtorId !=null and debtorId!=''">
+            and debtor_id = #{debtorId}
+        </if>
+        <if test="leaderId !=null and leaderId!=''">
+            and leader_id = #{leaderId}
+        </if>
+        <if test="returnTime !=null and returnTime!=''">
+            and return_time = #{returnTime}
+        </if>
+        <if test="state !=null and state!=''">
+            and state = #{state}
+        </if>
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+
+
+
+    </select>
+
+
+    <!-- 带参数查询资金划拨列表 -->
+    <select id="selectPageMap" resultType="java.util.Map">
+        select
+        ( SELECT NAME FROM sys_organ ent WHERE loan.debtor_id = ent.id ) AS debtor_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.leader_id = ent.id ) AS leader_name,
+        (select sum(amount) from t_loan_return t where t.loan_id=loan.id) as reality_amount,
+        (select sum(rate) from t_loan_return t where t.loan_id=loan.id) as reality_rate,
+        <include refid="Base_Column_List"/>
+        from t_loan loan where 1=1
+        <if test="debtorId !=null and debtorId!=''">
+            and debtor_id = #{debtorId}
+        </if>
+        <if test="leaderId !=null and leaderId!=''">
+            and leader_id = #{leaderId}
+        </if>
+        <!-- <if test="returnTime !=null and returnTime!=''">
+             and return_time = #{returnTime}
+         </if>-->
+        <if test="state !=null and state!=''">
+            and state = #{state}
+        </if>
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+
+
+        <if test="apply_user !=null and apply_user!=''">
+            and apply_user = #{apply_user}
+        </if>
+
+        <if test="apply_time !=null and apply_time!=''">
+            and  date_format(apply_time,'%Y-%m') = date_format(#{apply_user},'%Y-%m')
+        </if>
+
+        <if test="isWarn =='1'.toString()">
+            and (select sum(amount) from t_loan_return t where t.loan_id=loan.id)&lt;loan.amount
+            and DATEDIFF(loan.return_time,now())&lt;3
+        </if>
+
+    </select>
+    <!-- 导出数据 -->
+    <select id="selectExcelList" resultType="java.util.Map">
+        select
+        ( SELECT NAME FROM sys_dic dic WHERE loan.state = dic.code and type='loan_approval') AS state_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.debtor_id = ent.id ) AS debtor_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.leader_id = ent.id ) AS leader_name,
+        (select sum(amount) from t_loan_return t where t.loan_id=loan.id) as reality_amount,
+        (select sum(rate) from t_loan_return t where t.loan_id=loan.id) as reality_rate,
+        <include refid="Base_Column_List"/>
+        from t_loan loan where 1=1
+        </select>
+
+
+    <select id="selectDebtorAll" resultType="java.util.Map">
+         SELECT
+        ( SELECT NAME FROM sys_organ ent WHERE loan.debtor_id = ent.id ) AS debtor_name,
+        (SELECT  sum( amount ) FROM  t_loan_return t WHERE t.loan_id IN ( SELECT id FROM t_loan loan2 WHERE loan2.debtor_id = loan.debtor_id ) ) AS reality_amount,
+        (SELECT  sum( rate ) FROM t_loan_return t WHERE t.loan_id IN ( SELECT id FROM t_loan loan2 WHERE loan2.debtor_id = loan.debtor_id ) ) AS reality_rate,
+         sum( amount ) as amount  FROM t_loan loan WHERE 1 = 1
+        <if test="debtorId !=null and debtorId!=''">
+            and debtor_id = #{debtorId}
+        </if>
+         GROUP BY debtor_id
+    </select>
+
+    <select id="selectLeaderAll" resultType="java.util.Map">
+         SELECT
+        ( SELECT NAME FROM sys_organ ent WHERE loan.leader_id = ent.id ) AS leader_name,
+        (SELECT  sum( amount ) FROM  t_loan_return t WHERE t.loan_id IN ( SELECT id FROM t_loan loan2 WHERE loan2.leader_id = loan.leader_id ) ) AS reality_amount,
+        (SELECT  sum( rate ) FROM t_loan_return t WHERE t.loan_id IN ( SELECT id FROM t_loan loan2 WHERE loan2.leader_id = loan.leader_id ) ) AS reality_rate,
+         sum( amount ) as amount FROM t_loan loan WHERE 1 = 1
+        <if test="leaderId !=null and leaderId!=''">
+            and leader_id = #{leaderId}
+        </if>
+          GROUP BY leader_id
+    </select>
+
+    <select id="selectDebtorAndLeaderAll" resultType="java.util.Map">
+        SELECT
+        ( SELECT NAME FROM sys_organ ent WHERE loan.debtor_id = ent.id ) AS debtor_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.leader_id = ent.id ) AS leader_name,
+        (SELECT  sum( amount ) FROM  t_loan_return t WHERE t.loan_id IN ( SELECT id FROM t_loan loan2 WHERE loan2.debtor_id = loan.debtor_id ) ) AS reality_amount,
+        (SELECT  sum( rate ) FROM t_loan_return t WHERE t.loan_id IN ( SELECT id FROM t_loan loan2 WHERE loan2.debtor_id = loan.debtor_id ) ) AS reality_rate,
+        sum( amount ) as amount  FROM t_loan loan WHERE 1 = 1
+        <if test="debtorId !=null and debtorId!=''">
+            and debtor_id = #{debtorId}
+        </if>
+        <if test="leaderId !=null and leaderId!=''">
+            and leader_id = #{leaderId}
+        </if>
+        GROUP BY debtor_id,leader_id
+    </select>
+
+    <select id="selectByLoanId" resultType="java.util.Map">
+       SELECT
+
+        ( SELECT NAME FROM sys_organ ent WHERE loan.debtor_id = ent.id ) AS debtor_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.leader_id = ent.id ) AS leader_name,
+        ( SELECT user_name FROM jk_bank_organ bank WHERE loan.leader_bank_id = bank.id ) AS leader_user_name,
+        ( SELECT bank_name FROM jk_bank_organ bank WHERE loan.leader_bank_id = bank.id ) AS leader_bank_name,
+        ( SELECT bank_account FROM jk_bank_organ bank WHERE loan.leader_bank_id = bank.id ) AS leader_bank_account,
+        ( SELECT user_name FROM jk_bank_organ bank WHERE loan.debtor_bank_id = bank.id ) AS debtor_user_name,
+        ( SELECT bank_name FROM jk_bank_organ bank WHERE loan.debtor_bank_id = bank.id ) AS debtor_bank_name,
+        ( SELECT bank_account FROM jk_bank_organ bank WHERE loan.debtor_bank_id = bank.id ) AS debtor_bank_account,
+        <include refid="Base_Column_List"/>
+        from t_loan loan  where 1=1 and
+        id=#{id}
+    </select>
+
+    <select id="selectLoanMapById" resultType="java.util.Map">
+        SELECT
+        ( SELECT NAME FROM sys_organ ent WHERE loan.debtor_id = ent.id ) AS debtor_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.leader_id = ent.id ) AS leader_name,
+        <include refid="Base_Column_List"/>
+         from t_loan loan  where 1=1 and
+        id=#{id}
+    </select>
+
+
+
+    <select id="selectLeaderAndDebtorAll" resultType="java.util.Map">
+        SELECT
+        ( SELECT NAME FROM sys_organ ent WHERE loan.debtor_id = ent.id ) AS debtor_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.leader_id = ent.id ) AS leader_name,
+        (SELECT  sum( amount ) FROM  t_loan_return t WHERE t.loan_id IN ( SELECT id FROM t_loan loan2 WHERE loan2.leader_id = loan.leader_id ) ) AS reality_amount,
+        (SELECT  sum( rate ) FROM t_loan_return t WHERE t.loan_id IN ( SELECT id FROM t_loan loan2 WHERE loan2.leader_id = loan.leader_id ) ) AS reality_rate,
+        sum( amount ) as amount  FROM t_loan loan WHERE 1 = 1
+        <if test="debtorId !=null and debtorId!=''">
+            and debtor_id = #{debtorId}
+        </if>
+        <if test="leaderId !=null and leaderId!=''">
+            and leader_id = #{leaderId}
+        </if>
+        GROUP BY leader_id,debtor_id
+    </select>
+
+
+    <select  id="selectUserIdByName" resultType="java.lang.Integer">
+        select id  from   sys_user where  1=1 and  username=#{username}
+    </select>
+
+
+    <!-- 查询用户角色 -->
+    <select id="selectUserRoles" resultType="com.jk.sys.entity.Role">
+        select s2.* from
+		(select user_id,role_id from sys_user_role where user_id = #{userId})s1 left JOIN
+		 sys_role s2 on s1.role_id = s2.id
+    </select>
+
+    <!-- 带参数查询资金划拨列表 -->
+    <select id="selectByLoanState" resultType="java.util.Map">
+        select
+        ( SELECT NAME FROM sys_dic dic WHERE loan.status = dic.code and type='loan_approval') AS status_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.debtor_id = ent.id ) AS debtor_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.leader_id = ent.id ) AS leader_name,
+        <include refid="Base_Column_List"/>
+        from t_loan loan where 1=1
+        <!-- <if test="returnTime !=null and returnTime!=''">
+             and return_time = #{returnTime}
+         </if>-->
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+
+    </select>
+
+
+    <select id="selectByLoan" resultType="java.util.Map">
+        select
+        ( SELECT NAME FROM sys_dic dic WHERE loan.status = dic.code and type='loan_approval') AS status_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.debtor_id = ent.id ) AS debtor_name,
+        ( SELECT NAME FROM sys_organ ent WHERE loan.leader_id = ent.id ) AS leader_name,
+        <include refid="Base_Column_List"/>
+        from t_loan loan where 1=1  limit #{start} ,3
+        oder by loan.trade_time desc
+        <!-- <if test="returnTime !=null and returnTime!=''">
+             and return_time = #{returnTime}
+         </if>-->
+
+    </select>
+
+
+    <select id="getUserByRoleAndOrgan" resultType="com.jk.sys.entity.User">
+      select  *  from  sys_user  where  1=1 and  organ_id=#{organId} and  id  in  (select user_id  from
+      sys_user_role    where  role_id  =(select  id  from sys_role  WHERE  code=#{code}))
+    </select>
+
+</mapper>
+

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.LoanReturnMapper">
+
+    <sql id="Base_Column_List">
+        id,loan_id,amount,should_amount,rate,should_rate,trade_time,status,remark,inserter,updater,insert_time,update_time
+    </sql>
+
+    <!-- 带参数查询归还本金和利息列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.LoanReturn">
+        select
+        <include refid="Base_Column_List"/>
+        from t_loan_return where 1=1
+        <if test="loanId !=null and loanId!=''">
+            and loan_id = #{loanId}
+        </if>
+        <if test="tradeTime !=null and tradeTime!=''">
+            and trade_time = #{tradeTime}
+        </if>
+
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+    </select>
+
+    <!-- 带参数查询归还本金和利息列表 -->
+    <select id="selectPageMap" resultType="java.util.Map">
+        select
+        ( SELECT number FROM t_loan loan WHERE loan.id = t.loan_id ) AS loan_number,
+        id, loan_id,amount,should_amount,rate,should_rate,trade_time,status,remark
+        from t_loan_return  t where 1=1
+        <if test="loanId !=null and loanId!=''">
+            and loan_id = #{loanId}
+        </if>
+        <if test="tradeTime !=null and tradeTime!=''">
+            and trade_time = #{tradeTime}
+        </if>
+
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+    </select>
+
+    <!-- 导出数据 -->
+    <select id="selectExcelList" resultType="java.util.Map">
+        select
+        ( SELECT number FROM t_loan loan WHERE loan.id = t.loan_id ) AS loan_number,
+        id, loan_id,amount,should_amount,rate,should_rate,trade_time,status,remark
+        from t_loan_return  t where 1=1
+    </select>
+
+
+    <!--获取 -->
+    <select id="getAmountById" resultType="com.jk.gck.entity.LoanReturn">
+        select *
+        from t_loan_return where 1=1
+        <if test="loanId !=null and loanId!=''">
+            and loan_id = #{loanId}
+        </if>
+        order by trade_time desc;
+    </select>
+
+
+</mapper>
+

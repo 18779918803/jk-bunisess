@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.SubProjectMapper">
+
+    <sql id="Base_Column_List">
+        id,number,name,mainpid,status,owner,type,des,note,inserter,insert_time,updater,update_time
+    </sql>
+
+    <!-- 带参数查询子项目列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.SubProject">
+        select
+        <include refid="Base_Column_List"/>
+        from t_sub_project where 1=1
+        <if test="number !=null and number!=''">
+            and number like concat('%',#{number},'%')
+        </if>
+        <if test="name !=null and name!=''">
+            and name like concat('%',#{name},'%')
+        </if>
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+        <if test="owner !=null and owner!=''">
+            and owner = #{owner}
+        </if>
+        <if test="type !=null and type!=''">
+            and type = #{type}
+        </if>
+
+        <if test="mainpid !=null and mainpid!=''">
+            and mainpid = #{mainpid}
+        </if>
+    </select>
+
+
+    <!-- 带参数查询子项目列表 -->
+    <select id="selectPageMap" resultType="java.util.Map">
+        SELECT
+        ( SELECT NAME FROM t_entity ent WHERE sub.OWNER = ent.id ) AS entity_name,
+        ( SELECT NAME FROM t_main_project main WHERE sub.mainPid = main.id ) AS main_project_name,
+        sub.*
+        FROM
+        t_sub_project sub
+        WHERE
+        1 = 1
+        <if test="number !=null and number!=''">
+            and number like concat('%',#{number},'%')
+        </if>
+        <if test="name !=null and name!=''">
+            and name like concat('%',#{name},'%')
+        </if>
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+        <if test="owner !=null and owner!=''">
+            and owner = #{owner}
+        </if>
+        <if test="type !=null and type!=''">
+            and type = #{type}
+        </if>
+        <if test="mainpid !=null and mainpid!=''">
+            and mainpid = #{mainpid}
+        </if>
+    </select>
+
+    <!-- 导出数据 -->
+    <select id="selectExcelList" resultType="java.util.Map">
+            select
+            number,name,
+            ( SELECT NAME FROM t_entity ent WHERE sub.OWNER = ent.id ) AS entity_name,
+            ( SELECT NAME FROM t_main_project main WHERE sub.mainPid = main.id ) AS main_project_name,
+            ( SELECT NAME FROM sys_dic  dic  WHERE sub.type = dic.code  and  type='subProject_type') AS sub_project_type,
+              des,note,'1'
+             from t_sub_project  sub
+     </select>
+
+    <select id="selectByMainProjectId" resultType="com.jk.gck.entity.SubProject" parameterType="java.lang.Long">
+        select id,
+        number,name,mainpid,status,owner,type,des,note
+        from t_sub_project
+        WHERE 1=1
+        <if test="mainpid !=null and mainpid!=''">
+            and mainpid = #{mainpid}
+        </if>
+    </select>
+
+</mapper>
+

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.ApprovalRecordMapper">
+
+    <sql id="Base_Column_List">
+        id,type,approval_id,name,approval_time,approval_status,approval_des,inserter,updater,insert_time,update_time
+    </sql>
+
+    <!-- 带参数查询审核记录列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.ApprovalRecord">
+        select
+        <include refid="Base_Column_List"/>
+        from t_approval_record where 1=1
+        <if test="type !=null and type!=''">
+            and type = #{type}
+        </if>
+        <if test="name !=null and name!=''">
+            and name like concat('%',#{name},'%')
+        </if>
+        <if test="approvalStatus !=null and approvalStatus!=''">
+            and approval_status = #{approvalStatus}
+        </if>
+        <if test="approvalId !=null and approvalId!=''">
+            and approval_id = #{approvalId}
+        </if>
+    </select>
+
+</mapper>
+

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.OpenUserMapper">
+
+    <sql id="Base_Column_List">
+        id,nick_name,avatar_url,gender,country,province,city,language,openid,session_key,third_session,inserter,updater,insert_time,update_time
+    </sql>
+
+    <!-- 带参数查询小程序用户列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.OpenUser">
+        select
+        <include refid="Base_Column_List"/>
+        from jk_open_user where 1=1
+        and auth = 1
+        <if test="nickName !=null and nickName!=''">
+            and nick_name like concat('%',#{nickName},'%')
+        </if>
+    </select>
+
+    <select id="selectByThirdSession" resultType="com.jk.gck.entity.OpenUser">
+        select * from jk_open_user where third_session = #{thirdSession}
+    </select>
+
+    <select id="selectByOpenid" resultType="com.jk.gck.entity.OpenUser">
+        select * from jk_open_user where openid = #{openid}
+    </select>
+
+    <insert id="insertOpenUser">
+        insert into jk_open_user(auth, openid, session_key, third_session, insert_time, update_time)
+        values (0, #{openid}, #{sessionKey}, #{thirdSession}, now(), now())
+        on duplicate key
+        update
+        session_key = #{sessionKey},
+        third_session = #{thirdSession},
+        update_time = now();
+    </insert>
+
+</mapper>
+

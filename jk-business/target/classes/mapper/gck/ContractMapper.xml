@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.ContractMapper">
+    <!--approvalsum,paysum,billsum,-->
+    <sql id="Base_Column_List">
+        id,number,type,price,payrate,is_warn,donerayrate,state,qualitydepositrate,qualityperiod,completiondate,qualityfixpay,auditprice,finalauditprice,projectid,partya,partyb,signdate,note,status,supervisionrate,checkrate,warning,partyc,mainprojectid,contractname,inserter,insert_time,updater,update_time
+    </sql>
+
+    <!-- 带参数查询合同列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.Contract">
+        select
+        (SELECT IFNULL( sum(bill_amount), 0 ) FROM t_payment WHERE contract.id = contract_id) as billsum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_payment WHERE contract.id = contract_id) as paysum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_financial_approval WHERE contract.id = contract_id) as approvalsum,
+        <include refid="Base_Column_List"/>
+        from t_contract contract where 1=1
+        <if test="number !=null and number!=''">
+            and number like concat('%',#{number},'%')
+        </if>
+        <if test="type !=null and type!=''">
+            and type = #{type}
+        </if>
+        <if test="state !=null and state!=''">
+            and state = #{state}
+        </if>
+        <if test="projectid !=null and projectid!=''">
+            and projectId = #{projectid}
+        </if>
+        <if test="partya !=null and partya!=''">
+            and partya = #{partya}
+        </if>
+        <if test="partyb !=null and partyb!=''">
+            and partyb = #{partyb}
+        </if>
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+
+        <if test="mainprojectid !=null and mainprojectid!=''">
+            and mainprojectid = #{mainprojectid}
+        </if>
+        <if test="contractname !=null and contractname!=''">
+            and contractname like concat('%',#{contractname},'%')
+        </if>
+    </select>
+
+
+    <select id="selectByContractId" resultType="java.util.Map">
+        select
+        ( SELECT NAME FROM t_entity ent WHERE contract.partya = ent.id ) AS partya_name,
+        ( SELECT NAME FROM t_entity ent WHERE contract.partyb = ent.id ) AS partyb_name,
+        ( SELECT NAME FROM t_sub_project sub WHERE contract.projectId = sub.id ) AS sub_project_name,
+        ( SELECT NAME FROM t_main_project main WHERE contract.mainprojectId = main.id ) AS main_project_name,
+        number,id,contractname
+        from t_contract contract
+        where 1=1
+        <if test="id !=null and id!=''">
+            and contract.id =#{id}
+        </if>
+    </select>
+
+    <!-- 导出数据 -->
+    <select id="selectExcelList" resultType="java.util.Map">
+        select
+        ( SELECT NAME FROM t_entity ent WHERE contract.partya = ent.id ) AS partya_name,
+        ( SELECT NAME FROM t_entity ent WHERE contract.partyb = ent.id ) AS partyb_name,
+        ( SELECT NAME FROM t_entity ent WHERE contract.partyc = ent.id ) AS partyc_name,
+        ( SELECT NAME FROM t_sub_project sub WHERE contract.projectId = sub.id ) AS sub_project_name,
+        ( SELECT NAME FROM sys_dic dic WHERE contract.type = dic.code and type='contract_type') AS contract_type,
+        ( SELECT NAME FROM sys_dic dic WHERE contract.state = dic.code and type='contract_state') AS contract_state,
+        ( SELECT NAME FROM t_main_project main WHERE contract.mainprojectId = main.id ) AS main_project_name,
+        (SELECT IFNULL( sum(bill_amount), 0 ) FROM t_payment WHERE contract.id = contract_id and contract.status=3) as
+        billsum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_payment WHERE contract.id = contract_id and contract.status=3) as
+        paysum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_financial_approval WHERE contract.id = contract_id and
+        contract.status=3) as approvalsum,
+        number,type,price,payrate,donepayrate,state,qualitydepositrate,qualityperiod,completiondate,qualityfixPay,auditprice,finalauditprice,projectid,partya,partyb,signdate,note,status,supervisionrate,checkrate,warning,partyc,mainprojectid,contractname,
+        update_time,'1'
+        from t_contract contract
+        where 1=1
+        <if test="number !=null and number!=''">
+            and number like concat('%',#{number},'%')
+        </if>
+        <if test="type !=null and type!=''">
+
+            and type = #{type}
+        </if>
+        <if test="state !=null and state!=''">
+            and state = #{state}
+        </if>
+        <if test="projectid !=null and projectid!=''">
+            and projectId = #{projectid}
+        </if>
+        <if test="partya !=null and partya!=''">
+            and partya = #{partya}
+        </if>
+        <if test="partyb !=null and partyb!=''">
+            and partyb = #{partyb}
+        </if>
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+        <if test="mainprojectid !=null and mainprojectid!=''">
+            and mainprojectid = #{mainprojectid}
+        </if>
+        <if test="contractname !=null and contractname!=''">
+            and contractname like concat('%',#{contractname},'%')
+        </if>
+    </select>
+
+    <select id="selectMapById" resultType="java.util.Map">
+        SELECT
+        ( SELECT NAME FROM t_entity ent WHERE contract.partya = ent.id ) AS partya_name,
+        ( SELECT NAME FROM t_entity ent WHERE contract.partyb = ent.id ) AS partyb_name,
+        ( SELECT NAME FROM t_sub_project sub WHERE contract.projectId = sub.id ) AS sub_project_name,
+        ( SELECT NAME FROM t_main_project main WHERE contract.mainprojectId = main.id ) AS main_project_name,
+        (SELECT IFNULL( sum(bill_amount), 0 ) FROM t_payment WHERE contract.id = contract_id and contract.status=3) as
+        billsum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_payment WHERE contract.id = contract_id and contract.status=3) as
+        paysum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_financial_approval WHERE contract.id = contract_id and
+        contract.status=3) as approvalsum,
+        contract.* FROM
+        t_contract contract
+        WHERE
+        1 = 1
+        <if test="contractid !=null and contractid!=''">
+            and id =#{contractid}
+        </if>
+    </select>
+
+
+    <!-- 带参数查询子项目列表 -->
+    <select id="selectPageMap" resultType="java.util.Map">
+        SELECT
+        ( SELECT NAME FROM t_entity ent WHERE contract.partya = ent.id ) AS partya_name,
+        ( SELECT NAME FROM t_entity ent WHERE contract.partyb = ent.id ) AS partyb_name,
+        ( SELECT NAME FROM t_sub_project sub WHERE contract.projectId = sub.id ) AS sub_project_name,
+        ( SELECT NAME FROM t_main_project main WHERE contract.mainprojectId = main.id ) AS main_project_name,
+        (SELECT IFNULL( sum(bill_amount), 0 ) FROM t_payment WHERE contract.id = contract_id and contract.status=3) as
+        billsum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_payment WHERE contract.id = contract_id and contract.status=3) as
+        paysum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_financial_approval WHERE contract.id = contract_id and
+        contract.status=3) as approvalsum,
+        contract.*
+        FROM
+        t_contract contract
+        WHERE
+        1 = 1
+        <if test="number !=null and number!=''">
+            and number like concat('%',#{number},'%')
+        </if>
+        <if test="contractname !=null and contractname!=''">
+            and contractname like concat('%',#{contractname},'%')
+        </if>
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+        <if test="owner !=null and owner!=''">
+            and owner = #{owner}
+        </if>
+        <if test="type !=null and type!=''">
+            and type = #{type}
+        </if>
+        <if test="projectid !=null and projectid!=''">
+            and projectId = #{projectid}
+        </if>
+        <if test="partya !=null and partya!=''">
+            and partya = #{partya}
+        </if>
+        <if test="partyb !=null and partyb!=''">
+            and partyb = #{partyb}
+        </if>
+        <if test="mainprojectid !=null and mainprojectid!=''">
+            and mainprojectid = #{mainprojectid}
+        </if>
+
+        <!--<if test="warning =='1'.toString()">
+            and warning is not null and warning!=''
+        </if>-->
+
+        <if test="warning =='1'.toString()">
+            and is_warn=2
+        </if>
+
+        order by id
+    </select>
+
+
+    <!-- 只统计合同中存在主项目-->
+    <select id="selectAllContractByMainProject2" resultType="java.util.Map">
+        select ( SELECT NAME FROM t_main_project main WHERE contract.mainprojectid = main.id ) AS main_project_name,
+         sum(approvalsum) as approval_sum,sum(paysum)as  pay_sum  from   t_contract  contract group   by  mainprojectid
+    </select>
+
+
+    <!-- 只要是存在主项目也统计 -->
+    <select id="selectAllContractByMainProject" resultType="java.util.Map">
+        SELECT main.name as main_project_name ,
+        sum((SELECT IFNULL( sum(amount), 0 ) FROM t_financial_approval WHERE contract.id = contract_id and
+        contract.status=3)) AS approval_sum,
+        sum( (SELECT IFNULL( sum( amount ), 0 ) FROM t_payment WHERE contract.id = contract_id AND contract.STATUS = 3
+        )) AS pay_sum
+        from t_main_project
+        main LEFT JOIN t_contract contract ON main.id=contract.mainprojectid where 1=1
+        <if test="mainprojectid !=null and mainprojectid!=''">
+            and main.id= #{mainprojectid}
+        </if>
+        GROUP BY main.id
+    </select>
+
+
+    <!-- 只要是存在子项目也统计 -->
+    <select id="selectAllContractBySubProject" resultType="java.util.Map">
+        SELECT (select main.name from t_main_project main where main.id=sub.mainpid ) as main_project_name ,sub.name as
+        sub_project_name ,
+        sum((SELECT IFNULL( sum(amount), 0 ) FROM t_financial_approval WHERE contract.id = contract_id and
+        contract.status=3)) AS approval_sum,
+        sum( (SELECT IFNULL( sum( amount ), 0 ) FROM t_payment WHERE contract.id = contract_id AND contract.STATUS = 3
+        )) AS pay_sum
+        from t_sub_project sub
+        LEFT JOIN t_contract contract ON sub.id=contract.projectid where 1=1
+        <if test="projectid !=null and projectid!=''">
+            and sub.id= #{projectid}
+        </if>
+        GROUP BY sub.number
+    </select>
+
+
+    <!-- 只要存在合同就统计 -->
+    <select id="selectAllContractByContract" resultType="java.util.Map">
+        SELECT
+        ( SELECT NAME FROM t_sub_project sub WHERE contract.projectId = sub.id ) AS sub_project_name,
+        ( SELECT NAME FROM t_main_project main WHERE contract.mainprojectId = main.id ) AS main_project_name,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_payment WHERE contract.id = contract_id and contract.status=3) as
+        pay_sum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_financial_approval WHERE contract.id = contract_id and
+        contract.status=3) as approval_sum,
+        contract.number as contract_number,
+        contract.contractname as contract_name
+        FROM
+        t_contract contract
+        where 1=1
+
+        <if test="projectid !=null and projectid!=''">
+            and contract.projectId = #{projectid}
+        </if>
+
+        <if test="mainprojectid !=null and mainprojectid!=''">
+            and contract.mainprojectid = #{mainprojectid}
+        </if>
+    </select>
+
+
+    <select id="getMainCount" resultType="com.jk.gck.entity.Count">
+     SELECT
+        a.entityCount AS entityCount,
+        b.financialApprovalCount AS financialApprovalCount,
+        c.contractCount AS contractCount,
+        d.paymentCount AS paymentCount,
+        e.mainProjectCount AS mainProjectCount,
+        f.subProjectCount AS subProjectCount
+    FROM
+	(
+		(
+			SELECT
+
+			IF (count(*) IS NULL, 0, count(*)) AS subProjectCount
+			FROM
+				t_sub_project sub
+			WHERE
+				sub. STATUS = '2'
+		) f,
+		(
+			SELECT
+
+			IF (count(*) IS NULL, 0, count(*)) AS entityCount
+			FROM
+				t_entity ent
+			WHERE
+				ent. STATUS = '2'
+		) a,
+		(
+			SELECT
+
+			IF (count(*) IS NULL, 0, count(*)) AS financialApprovalCount
+			FROM
+				t_financial_approval fin
+			WHERE
+				fin. STATUS = '2'
+		) b,
+		(
+			SELECT
+
+			IF (count(*) IS NULL, 0, count(*)) AS contractCount
+			FROM
+				t_contract con
+			WHERE
+				con. STATUS = '2'
+		) c,
+		(
+			SELECT
+
+			IF (count(*) IS NULL, 0, count(*)) AS paymentCount
+			FROM
+				t_payment pay
+			WHERE
+				pay. STATUS = '2'
+		) d,
+		(
+			SELECT
+
+			IF (count(*) IS NULL, 0, count(*)) AS mainProjectCount
+			FROM
+				t_main_project main
+			WHERE
+				main. STATUS = '2'
+		) e
+	)
+    </select>
+
+
+    <select id="getWarningCount" resultType="java.lang.Long">
+        select count(1)
+        from t_contract  where is_warn=2
+    </select>
+
+    <select id="selectContractId" resultType="com.jk.gck.entity.Contract">
+       select
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_payment  payment WHERE contract.id = contract_id ) as
+         paysum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_financial_approval  financial  WHERE contract.id = contract_id) as approvalsum,
+        contract.*
+        from   t_contract  contract  where 1=1
+        and id=#{id}
+    </select>
+
+
+    <select id="selectContractByPartya" resultType="java.util.Map">
+        SELECT
+        ( SELECT NAME FROM t_entity ent WHERE contract.partya = ent.id ) AS partya_name,
+        sum(
+        ( SELECT IFNULL( sum( amount ), 0 ) FROM t_financial_approval WHERE contract.id = contract_id AND
+        contract.STATUS = 3
+        <if test="startDate !=null and startDate!=''">
+            and date &gt;= #{startDate}
+        </if>
+        <if test="endDate !=null and endDate!=''">
+            and date &lt;= #{endDate}
+        </if>
+        )
+        ) AS approval_sum,
+        sum(
+        ( SELECT IFNULL( sum( amount ), 0 ) FROM t_payment WHERE contract.id = contract_id AND contract.STATUS = 3
+        <if test="startDate !=null and startDate!=''">
+            and trade_time &gt;= #{startDate}
+        </if>
+        <if test="endDate !=null and endDate!=''">
+            and trade_time &lt;= #{endDate}
+        </if>
+        )) AS pay_sum
+        FROM
+        t_contract contract
+        WHERE
+        1=1
+        <if test="partya !=null and partya!=''">
+            and contract.partya = #{partya}
+        </if>
+
+        <if test="type !=null and type!=''">
+            and contract.type = #{type}
+        </if>
+        group by partya
+
+    </select>
+
+    <select id="selectAmountByContractId" resultType="java.util.Map">
+        select
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_payment WHERE contract.id = contract_id) as paySum,
+        (SELECT IFNULL( sum(amount), 0 ) FROM t_financial_approval WHERE contract.id = contract_id) as approvalSum
+        from t_contract contract where 1=1
+        <if test="contractId !=null and contractId!=''">
+            and contract.id = #{contractId}
+        </if>
+    </select>
+
+</mapper>
+

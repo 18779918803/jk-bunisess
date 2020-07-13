@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.PaymentMapper">
+
+    <sql id="Base_Column_List">
+        id,number,amount,should_amount,cut_amount,bill_amount,cut_note,trade_time,contract_id,note,status,inserter,updater,insert_time,update_time
+    </sql>
+
+    <!-- 带参数查询付款列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.Payment">
+        select
+        <include refid="Base_Column_List"/>
+        from t_payment where 1=1
+        <if test="number !=null and number!=''">
+            and number like concat('%',#{number},'%')
+        </if>
+        <if test="contractId !=null and contractId!=''">
+            and contract_id = #{contractId}
+        </if>
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+    </select>
+
+    <!-- 导出数据 -->
+    <select id="selectExcelList" resultType="java.util.Map">
+        select
+        contract.number AS contract_number,
+        contractname AS contract_name,
+        ( SELECT NAME FROM t_entity ent WHERE contract.partya = ent.id ) AS partya_name,
+        ( SELECT NAME FROM t_entity ent WHERE contract.partyb = ent.id ) AS partyb_name,
+        payment.*,'1'
+        from t_payment payment left join t_contract contract on payment.contract_id=contract.id
+        WHERE
+        1 = 1
+        <if test="number !=null and number!=''">
+            and payment.number like concat('%',#{number},'%')
+        </if>
+        <if test="contractId !=null and contractId!=''">
+            and payment.contract_id = #{contractId}
+        </if>
+        <if test="status !=null and status!=''">
+            and payment.status = #{status}
+        </if>
+        <if test="contractNumber !=null and contractNumber!=''">
+            and contract.number like concat('%',#{contractNumber},'%')
+        </if>
+
+        <if test="partya !=null and partya!=''">
+            and contract.partya = #{partya}
+        </if>
+
+        <if test="partyb !=null and partyb!=''">
+            and contract.partyb = #{partyb}
+        </if>
+
+        <if test="contractName !=null and contractName!=''">
+            and contract.contractName like concat('%',#{contractName},'%')
+        </if>
+
+        <if test="startDate !=null and startDate!=''">
+            and date_format(payment.trade_time,"%Y-%m-%d")>=#{startDate}
+        </if>
+
+        <if test="endDate !=null and endDate!=''">
+            and #{endDate}>=date_format(payment.trade_time,"%Y-%m-%d")
+        </if>
+    </select>
+
+
+    <!-- 带参数查询子项目列表 -->
+    <select id="selectPageMap" resultType="java.util.Map">
+        SELECT
+        ( SELECT NAME FROM t_entity ent WHERE contract.partya = ent.id ) AS partya_name,
+        ( SELECT NAME FROM t_entity ent WHERE contract.partyb = ent.id ) AS partyb_name,
+        ( SELECT NAME FROM t_sub_project sub WHERE contract.projectId = sub.id ) AS sub_project_name,
+        ( SELECT NAME FROM t_main_project main WHERE contract.mainprojectId = main.id ) AS main_project_name,
+        payment.*,
+        contract.number as contract_number,
+        contract.contractname as contract_name
+        FROM
+        t_payment payment left join t_contract contract on payment.contract_id=contract.id
+        WHERE
+        1 = 1
+        <if test="number !=null and number!=''">
+            and payment.number like concat('%',#{number},'%')
+        </if>
+        <if test="contractId !=null and contractId!=''">
+            and payment.contract_id = #{contractId}
+        </if>
+        <if test="status !=null and status!=''">
+            and payment.status = #{status}
+        </if>
+        <if test="contractNumber !=null and contractNumber!=''">
+            and contract.number like concat('%',#{contractNumber},'%')
+        </if>
+
+        <if test="partya !=null and partya!=''">
+            and contract.partya = #{partya}
+        </if>
+
+        <if test="partyb !=null and partyb!=''">
+            and contract.partyb = #{partyb}
+        </if>
+
+        <if test="contractName !=null and contractName!=''">
+            and contract.contractName like concat('%',#{contractName},'%')
+        </if>
+
+        <if test="startDate !=null and startDate!=''">
+            and date_format(payment.trade_time,"%Y-%m-%d")>=#{startDate}
+        </if>
+
+        <if test="endDate !=null and endDate!=''">
+            and #{endDate}>=date_format(payment.trade_time,"%Y-%m-%d")
+        </if>
+    </select>
+</mapper>
+

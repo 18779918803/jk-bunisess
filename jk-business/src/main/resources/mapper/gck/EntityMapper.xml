@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.EntityMapper">
+
+    <sql id="Base_Column_List">
+        id,name,credit_code,address,bank_account,bank_name,note,is_internal,status,inserter,insert_time,updater,update_time
+    </sql>
+
+    <!-- 带参数查询组织列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.Entity">
+        select
+        <include refid="Base_Column_List"/>
+        from t_entity where 1=1
+        <if test="name !=null and name!=''">
+            and name like concat('%',#{name},'%')
+        </if>
+        <if test="creditCode !=null and creditCode!=''">
+            and credit_code like concat('%',#{creditCode},'%')
+        </if>
+        <if test="address !=null and address!=''">
+            and address like concat('%',#{address},'%')
+        </if>
+        <if test="bankAccount !=null and bankAccount!=''">
+            and bank_account like concat('%',#{bankAccount},'%')
+        </if>
+        <if test="note !=null and note!=''">
+            and note like concat('%',#{note},'%')
+        </if>
+        <if test="isInternal !=null and isInternal!=''">
+            and is_internal = #{isInternal}
+        </if>
+        <if test="status !=null and status!=''">
+            and status = #{status}
+        </if>
+    </select>
+
+    <!-- 导出数据 -->
+    <select id="selectExcelList" resultType="java.util.Map">
+            select
+            name,credit_code,address,bank_account,note,is_internal,status,'1'
+            from t_entity
+        </select>
+</mapper>
+

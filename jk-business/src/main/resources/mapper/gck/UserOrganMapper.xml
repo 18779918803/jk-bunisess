@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.UserOrganMapper">
+
+    <sql id="Base_Column_List">
+        id,user_id,organ_id,inserter,insert_time,updater,update_time
+    </sql>
+
+    <!-- 带参数查询用户关联组织列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.UserOrgan">
+        select
+        <include refid="Base_Column_List"/>
+        from jk_user_organ where 1=1
+        <if test="userId !=null and userId!=''">
+           and  user_id=#{userId}
+        </if>
+        <if test="organId !=null and organId!=''">
+            and  organ_id=#{organId}
+        </if>
+    </select>
+
+
+    <select id="selectPageMap" resultType="java.util.Map">
+        select
+        id,
+        (select   username   from   sys_user  where  id=t.user_id ) as  user_name,
+        (select   name   from   sys_organ  where  id= t.organ_id ) as  organ_name,
+         user_id,
+        organ_id
+        from jk_user_organ  t where 1=1
+        <if test="userId !=null and userId!=''">
+            and  user_id=#{userId}
+        </if>
+        <if test="organId !=null and organId!=''">
+            and  organ_id=#{organId}
+        </if>
+    </select>
+
+    <select id="getUserOrganbyOrgan" resultType="java.lang.String">
+        select   username  from  sys_user where  id in (select user_id   from
+        jk_user_organ  where organ_id=#{organId})
+    </select>
+
+
+</mapper>
+

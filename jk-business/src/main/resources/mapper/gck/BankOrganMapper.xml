@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jk.gck.mapper.BankOrganMapper">
+
+    <sql id="Base_Column_List">
+        id,organ_id,user_name,bank_name,bank_account,inserter,updater,insert_time,update_time
+    </sql>
+
+    <!-- 带参数查询公司开户信息列表 -->
+    <select id="selectPageList" resultType="com.jk.gck.entity.BankOrgan">
+        select
+
+        <include refid="Base_Column_List"/>
+        from jk_bank_organ  organ where 1=1
+        <if test="organId !=null and organId!=''">
+            and organ_id = #{organId}
+        </if>
+        <if test="userName !=null and userName!=''">
+            and user_name like concat('%',#{userName},'%')
+        </if>
+        <if test="bankName !=null and bankName!=''">
+            and bank_name like concat('%',#{bankName},'%')
+        </if>
+    </select>
+
+
+    <select id="selectPageMap" resultType="java.util.Map">
+        select
+        (select name from  sys_organ where id=organ.organ_id) as organ_name,
+        <include refid="Base_Column_List"/>
+        from jk_bank_organ organ where 1=1
+        <if test="organId !=null and organId!=''">
+            and organ_id = #{organId}
+        </if>
+        <if test="userName !=null and userName!=''">
+            and user_name like concat('%',#{userName},'%')
+        </if>
+        <if test="bankName !=null and bankName!=''">
+            and bank_name like concat('%',#{bankName},'%')
+        </if>
+    </select>
+
+    <!-- 导出数据 -->
+    <select id="selectExcelList" resultType="java.util.Map">
+            select
+            organ_id,user_name,bank_name,bank_account,'1'
+            from jk_bank_organ
+        </select>
+
+
+    <select id="selectListByOrganId" resultType="com.jk.gck.entity.BankOrgan">
+        select
+        <include refid="Base_Column_List"/>
+        from jk_bank_organ  organ where 1=1
+        <if test="organId !=null and organId!=''">
+            and organ_id = #{organId}
+        </if>
+    </select>
+
+</mapper>
+
